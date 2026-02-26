@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+    #location-map {
+        height: 250px;
+    }
+</style>
+<div class="flex flex-col md:flex-row gap-6 mt-4 pb-10 justify-center px-4">
+    <main class="w-full xl:w-[1100px] lg:w-[900px] md:w-[700px] flex-shrink-0 flex flex-col gap-4">
+
+        <div>
+            <h2 class="font-extrabold text-3xl text-brandBlue mb-6 border-b border-brandBorder pb-4">
+                Edit Your Profile
+            </h2>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div
+                class="mb-6 p-4 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-200{% else %}bg-emerald-50 text-emerald-600 border border-emerald-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Profile Picture Section -->
+                <div
+                    class="bg-white border border-brandBorder rounded-2xl p-6 shadow-sm mb-6 flex items-center gap-6 bg-gradient-to-r from-white to-slate-50">
+                    <div class="relative group">
+                        <div
+                            class="w-24 h-24 rounded-full border-4 border-brandBlue/20 bg-brandBlue/10 flex items-center justify-center overflow-hidden shadow-md">
+                            {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" class="w-full h-full object-cover"
+                                id="pic-preview">
+                            {% else %}
+                            <span class="text-3xl font-bold text-brandBlue" id="pic-initial">{{ user.username|make_list|first|upper }}</span>
+                            <img src="" class="w-full h-full object-cover hidden" id="pic-preview">
+                            {% endif %}
+                        </div>
+                        <label for="id_profile_picture"
+                            class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition cursor-pointer flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-brandText">Profile Photo</h3>
+                        <p class="text-sm text-brandIcon mt-1">Hover over the photo and click to change</p>
+                        <input type="file" name="profile_picture" accept="image/*" id="id_profile_picture"
+                            class="hidden">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Identity & Verification -->
+                    <div
+                        class="bg-white border border-brandBorder rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-5 bg-gradient-to-b from-white to-slate-50">
+                        <h3
+                            class="text-lg font-bold text-brandText border-b border-brandBorder pb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-brandBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2">
+                                </path>
+                            </svg>
+                            Identity Verification
+                        </h3>
+
+                        {% for field in user_form %}
+                        {% if field.name in 'first_name,last_name' %}
+                        <div>
+                            <div class="block text-sm font-bold text-brandText mb-1">
+                                {{ field.label_tag }}
+                            </div>
+                            {{ field }}
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% for field in profile_form %}
+                        {% if field.name in 'full_name,aadhaar_number' %}
+                        <div>
+                            <div class="block text-sm font-bold text-brandText mb-1 flex items-center justify-between">
+                                {{ field.label_tag }}
+                                {% if field.field.disabled %}
+                                <span
+                                    class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200 font-bold flex items-center gap-1 shadow-sm">
+                                    🔒 Verified & Locked
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% if field.name == 'aadhaar_number' and not field.field.disabled %}
+                            <div class="flex gap-2">
+                                <div class="flex-grow">
+                                    {{ field }}
+                                </div>
+                                <button type="button"
+                                    class="bg-brandOrange text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-600 transition flex-shrink-0 shadow-sm">Send
+                                    OTP</button>
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div
+                        class="bg-white border border-brandBorder rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-5 bg-gradient-to-b from-white to-slate-50">
+                        <h3
+                            class="text-lg font-bold text-brandText border-b border-brandBorder pb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-brandBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Contact & Location
+                        </h3>
+
+                        {% for field in user_form %}
+                        {% if field.name == 'email' %}
+                        <div>
+                            <div class="block text-sm font-bold text-brandText mb-1">
+                                {{ field.label_tag }}
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="flex-grow">
+                                    {{ field }}
+                                </div>
+                                <button type="button"
+                                    class="bg-brandBlue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-900 transition flex-shrink-0 shadow-sm">Send
+                                    OTP</button>
+                            </div>
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% for field in profile_form %}
+                        {% if field.name == 'phone_number' %}
+                        <div>
+                            <div class="block text-sm font-bold text-brandText mb-1">
+                                {{ field.label_tag }}
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="flex-grow">
+                                    {{ field }}
+                                </div>
+                                <button type="button"
+                                    class="bg-brandBlue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-900 transition flex-shrink-0 shadow-sm">Send
+                                    OTP</button>
+                            </div>
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% for field in profile_form %}
+                        {% if field.name == 'live_location' %}
+                        <div class="mt-2">
+                            <div class="block text-sm font-bold text-brandText mb-2">
+                                {{ field.label_tag }}
+                            </div>
+                            <!-- Location Controls -->
+                            <div class="flex flex-col md:flex-row gap-2 mb-3">
+                                <div class="relative flex-1">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 text-brandIcon" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="manual-address"
+                                        placeholder="Search for area, street, or city"
+                                        class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-brandBorder rounded-xl text-sm focus:ring-2 focus:ring-brandBlue focus:border-transparent outline-none transition transition-shadow text-brandText placeholder-slate-400">
+                                </div>
+                                <button type="button" id="search-address-btn"
+                                    class="bg-brandBlue text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-900 transition flex-shrink-0 shadow-sm">Search</button>
+                                <button type="button" id="gps-location-btn"
+                                    class="bg-brandOrange text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600 transition flex-shrink-0 shadow-sm flex items-center justify-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4">
+                                        </path>
+                                    </svg>
+                                    Use GPS
+                                </button>
+                            </div>
+
+                            <!-- Leaflet Map Integration for Edit Profile -->
+                            <div id="location-map"
+                                class="w-full bg-slate-100 rounded-xl overflow-hidden border border-slate-200 mt-2 z-10 relative">
+                            </div>
+                            <div class="hidden">
+                                {{ field }}
+                            </div>
+                            <p class="text-xs font-bold text-brandIcon mt-2">📍 Click on the map or drag the pin to set
+                                your service area center.</p>
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Professional Details -->
+                    {% if request.user.profile.role != 'Job Provider' %}
+                    <div
+                        class="bg-white border border-brandBorder rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 bg-gradient-to-b from-white to-slate-50">
+                        <h3
+                            class="text-lg font-bold text-brandText border-b border-brandBorder pb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-brandBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Professional Profile
+                        </h3>
+
+                        {% for field in profile_form %}
+                        {% if field.name in 'primary_category,job_title,service_skills,years_experience' %}
+                        <div>
+                            <div class="block text-sm font-bold text-brandText mb-1">
+                                {{ field.label_tag }}
+                            </div>
+                            {{ field }}
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold">{{ field.errors.0 }}
+                            </p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        <!-- Availability Toggle -->
+                        {% for field in profile_form %}
+                        {% if field.name == 'is_available' %}
+                        <div
+                            class="flex items-center gap-3 bg-white p-4 rounded-xl border border-brandBorder mt-2 shadow-sm">
+                            <div class="flex items-center h-5">
+                                {{ field }}
+                            </div>
+                            <div class="ml-2 text-sm">
+                                <div class="font-bold text-brandText">{{ field.label_tag }}</div>
+                            </div>
+                            {% if field.errors %}<p class="text-xs text-red-500 mt-1 font-semibold w-full">{{ field.errors.0 }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                </div> <!-- End Bento Grid -->
+
+                <div class="pt-8 pb-4 flex gap-4 justify-end mt-4">
+                    <a href="{% url 'profile' %}"
+                        class="bg-white border border-brandBorder text-brandText font-bold px-8 py-3 rounded-full hover:bg-slate-50 transition shadow-sm text-center">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="bg-brandOrange text-white font-bold px-8 py-3 rounded-full hover:bg-orange-600 transition shadow-md hover:shadow-lg">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Add Tailwind classes to Django form inputs dynamically
+    document.addEventListener("DOMContentLoaded", function () {
+        // Text inputs
+        const textInputs = document.querySelectorAll('input[type="text"], input[type="email"], textarea');
+        textInputs.forEach(input => {
+            input.classList.add('w-full', 'bg-slate-50', 'border', 'border-slate-200', 'rounded-xl', 'px-4', 'py-2', 'text-sm', 'font-medium', 'focus:outline-none', 'focus:ring-2', 'focus:ring-brandBlue', 'focus:border-brandBlue', 'transition-all');
+        });
+
+        // Select inputs
+        const selectInputs = document.querySelectorAll('select');
+        selectInputs.forEach(input => {
+            input.classList.add('w-full', 'bg-slate-50', 'border', 'border-slate-200', 'rounded-xl', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'focus:outline-none', 'focus:ring-2', 'focus:ring-brandBlue', 'focus:border-brandBlue', 'transition-all');
+        });
+
+        // Checkboxes
+        const checkInputs = document.querySelectorAll('input[type="checkbox"]');
+        checkInputs.forEach(input => {
+            input.classList.add('w-5', 'h-5', 'text-brandBlue', 'bg-slate-50', 'border-slate-300', 'rounded', 'focus:ring-brandOrange', 'focus:ring-2');
+        });
+
+        // Profile Picture Preview
+        const pfInput = document.getElementById('id_profile_picture');
+        if (pfInput) {
+            pfInput.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('pic-preview');
+                        const initial = document.getElementById('pic-initial');
+                        if (initial) initial.classList.add('hidden');
+                        if (preview) {
+                            preview.src = e.target.result;
+                            preview.classList.remove('hidden');
+                        }
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+
+        // Live Location Leaflet Map
+        const mapDiv = document.getElementById('location-map');
+        if (mapDiv && typeof L !== 'undefined') {
+            const hiddenLocInput = document.getElementById('id_live_location');
+
+            // Set default coordinates (New Delhi) or parse existing
+            let defaultLat = 28.6139;
+            let defaultLng = 77.2090;
+            let hasLocation = false;
+
+            if (hiddenLocInput && hiddenLocInput.value && hiddenLocInput.value.includes('lat')) {
+                try {
+                    const locData = JSON.parse(hiddenLocInput.value);
+                    if (locData.lat && locData.lon) {
+                        defaultLat = locData.lat;
+                        defaultLng = locData.lon;
+                        hasLocation = true;
+                    }
+                } catch (e) {
+                    console.error("Invalid location JSON data");
+                }
+            }
+
+            // Initialize map
+            const map = L.map('location-map').setView([defaultLat, defaultLng], hasLocation ? 13 : 11);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            let marker = null;
+            if (hasLocation) {
+                marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+            }
+
+            function updateLocationData(lat, lng) {
+                if (hiddenLocInput) {
+                    hiddenLocInput.value = JSON.stringify({ lat: parseFloat(lat.toFixed(6)), lon: parseFloat(lng.toFixed(6)) });
+                }
+            }
+
+            function addOrUpdateMarker(lat, lng) {
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                    marker.on('dragend', function (e) {
+                        const pos = e.target.getLatLng();
+                        updateLocationData(pos.lat, pos.lng);
+                    });
+                }
+                updateLocationData(lat, lng);
+            }
+
+            // Map click to set location
+            map.on('click', function (e) {
+                addOrUpdateMarker(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Manual Address Search Geocoding
+            const searchBtn = document.getElementById('search-address-btn');
+            const addressInput = document.getElementById('manual-address');
+            if (searchBtn && addressInput) {
+                searchBtn.addEventListener('click', function () {
+                    const query = addressInput.value.trim();
+                    if (!query) return;
+
+                    const btnOriginalText = searchBtn.innerText;
+                    searchBtn.innerText = "Searching...";
+
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            searchBtn.innerText = btnOriginalText;
+                            if (data && data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lon = parseFloat(data[0].lon);
+                                map.setView([lat, lon], 14);
+                                addOrUpdateMarker(lat, lon);
+                            } else {
+                                alert("Address not found. Please try again with more details.");
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error geocoding:", err);
+                            searchBtn.innerText = btnOriginalText;
+                            alert("Error searching for address.");
+                        });
+                });
+
+                // Allow enter key in search box
+                addressInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchBtn.click();
+                    }
+                });
+            }
+
+            // GPS Location Geolocation
+            const gpsBtn = document.getElementById('gps-location-btn');
+            if (gpsBtn) {
+                gpsBtn.addEventListener('click', function () {
+                    if (!navigator.geolocation) {
+                        alert("Geolocation is not supported by your browser");
+                        return;
+                    }
+
+                    const btnOriginalText = gpsBtn.innerHTML;
+                    gpsBtn.innerText = "Locating...";
+
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            gpsBtn.innerHTML = btnOriginalText;
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            map.setView([lat, lon], 14);
+                            addOrUpdateMarker(lat, lon);
+                        },
+                        (error) => {
+                            gpsBtn.innerHTML = btnOriginalText;
+                            alert("Unable to retrieve your location. Check your browser permissions.");
+                            console.error("GPS Error:", error);
+                        },
+                        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    );
+                });
+            }
+
+            // Initial marker event setup if it existed
+            if (marker) {
+                marker.on('dragend', function (e) {
+                    const pos = e.target.getLatLng();
+                    updateLocationData(pos.lat, pos.lng);
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

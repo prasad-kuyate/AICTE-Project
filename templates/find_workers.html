@@ -1,0 +1,472 @@
+{%extends 'base.html' %}
+{%block extra_head %}
+<style>
+    .worker-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all .25s;
+        position: relative
+    }
+
+    .worker-card:hover {
+        box-shadow: 0 8px 30px rgba(30, 58, 138, .08);
+        border-color: #c7d2fe;
+        transform: translateY(-2px)
+    }
+
+    .worker-header {
+        display: flex;
+        gap: 16px;
+        padding: 20px 20px 0
+    }
+
+    .worker-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        border: 3px solid #e0e7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1e3a8a;
+        background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+        flex-shrink: 0;
+        overflow: hidden
+    }
+
+    .worker-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover
+    }
+
+    .worker-info {
+        flex: 1;
+        min-width: 0
+    }
+
+    .worker-name {
+        font-size: 17px;
+        font-weight: 800;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #3b82f6;
+        background: #eff6ff;
+        padding: 2px 8px;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe
+    }
+
+    .worker-title {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 2px;
+        font-weight: 500
+    }
+
+    .worker-category {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #f97316;
+        background: #fff7ed;
+        padding: 2px 10px;
+        border-radius: 12px;
+        border: 1px solid #fed7aa;
+        margin-top: 4px
+    }
+
+    .worker-stats {
+        display: flex;
+        gap: 16px;
+        padding: 12px 20px;
+        margin-top: 12px;
+        border-top: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fafbfd
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #475569;
+        font-weight: 600
+    }
+
+    .stat-icon {
+        font-size: 14px
+    }
+
+    .stat-value {
+        font-weight: 800;
+        color: #0f172a
+    }
+
+    .star {
+        color: #f59e0b;
+        font-size: 13px
+    }
+
+    .star.empty {
+        color: #e2e8f0
+    }
+
+    .worker-skills-section {
+        padding: 12px 20px
+    }
+
+    .skills-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 6px
+    }
+
+    .worker-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px
+    }
+
+    .worker-skill {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        color: #334155;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0
+    }
+
+    .worker-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px 16px;
+        gap: 10px
+    }
+
+    .avail-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #10b981;
+        background: #ecfdf5;
+        padding: 4px 12px;
+        border-radius: 20px;
+        border: 1px solid #a7f3d0
+    }
+
+    .avail-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+        animation: pulse 2s infinite
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1
+        }
+
+        50% {
+            opacity: .4
+        }
+    }
+
+    .worker-actions {
+        display: flex;
+        gap: 6px
+    }
+
+    .btn-msg {
+        padding: 8px 18px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #e2e8f0;
+        color: #1e3a8a;
+        background: #fff;
+        cursor: pointer;
+        transition: all .15s;
+        text-decoration: none;
+        white-space: nowrap
+    }
+
+    .btn-msg:hover {
+        background: #1e3a8a;
+        color: #fff;
+        border-color: #1e3a8a
+    }
+
+    .btn-profile {
+        padding: 8px 18px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+        cursor: pointer;
+        transition: all .15s;
+        text-decoration: none;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, .2)
+    }
+
+    .btn-profile:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 12px rgba(30, 58, 138, .3)
+    }
+
+    .filter-chip {
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        background: #fff;
+        text-decoration: none;
+        transition: all .15s;
+        white-space: nowrap
+    }
+
+    .filter-chip:hover,
+    .filter-chip.active {
+        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+        color: #fff;
+        border-color: #1e3a8a
+    }
+
+    .no-exp {
+        color: #94a3b8;
+        font-style: italic
+    }
+</style>
+{%endblock %}
+
+{%block content %}
+<div class="max-w-[1000px] mx-auto mt-4 pb-10 px-4">
+    <!-- Header Card -->
+    <div class="li-card p-6 mb-5">
+        <div class="flex items-center justify-between mb-1">
+            <div>
+                <h1 class="text-xl font-extrabold text-brandText">Find Workers</h1>
+                <p class="text-sm text-brandIcon mt-1">Browse verified & available professionals near you</p>
+            </div>
+            <div class="text-right">
+                <span class="text-2xl font-extrabold text-brandBlue">{{ total_workers }}</span>
+                <p class="text-xs font-bold text-brandIcon">Available</p>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="relative mt-4">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-brandIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <input type="text" id="live-search" autocomplete="off"
+                placeholder="Search by name, skill, trade, or category..."
+                class="w-full pl-10 pr-10 py-3 rounded-xl border border-brandBorder text-sm focus:ring-2 focus:ring-brandBlue/30 focus:border-brandBlue outline-none transition bg-slate-50">
+            <button type="button" id="clear-search"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-brandIcon hover:text-red-500 transition hidden"
+                onclick="document.getElementById('live-search').value='';filterWorkers();this.classList.add('hidden')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Quick Filters -->
+        <div class="flex flex-wrap gap-2 mt-3">
+            <a href="{%url 'jobs' %}" class="filter-chip {%if not current_filter %}active{%endif %}">All</a>
+            <a href="{%url 'jobs' %}?filter=Plumber"
+                class="filter-chip {%if current_filter == 'Plumber' %}active{%endif %}">🔧 Plumber</a>
+            <a href="{%url 'jobs' %}?filter=Electrician"
+                class="filter-chip {%if current_filter == 'Electrician' %}active{%endif %}">⚡ Electrician</a>
+            <a href="{%url 'jobs' %}?filter=Carpenter"
+                class="filter-chip {%if current_filter == 'Carpenter' %}active{%endif %}">🪚 Carpenter</a>
+            <a href="{%url 'jobs' %}?filter=Mechanic"
+                class="filter-chip {%if current_filter == 'Mechanic' %}active{%endif %}">🔩 Mechanic</a>
+            <a href="{%url 'jobs' %}?filter=Guard"
+                class="filter-chip {%if current_filter == 'Guard' %}active{%endif %}">🛡️ Guard</a>
+            <a href="{%url 'jobs' %}?filter=Housekeeping"
+                class="filter-chip {%if current_filter == 'Housekeeping' %}active{%endif %}">🧹 Housekeeping</a>
+            <a href="{%url 'jobs' %}?filter=Packing"
+                class="filter-chip {%if current_filter == 'Packing' %}active{%endif %}">📦 Packing</a>
+        </div>
+    </div>
+
+    <!-- Results Label -->
+    <div class="flex items-center justify-between mb-3 px-1">
+        <h2 class="font-bold text-sm text-brandText">{%if current_filter %}Workers matching "{{ current_filter }}"{%else %}Available Workers{%endif %}</h2>
+        <span id="search-count" class="text-xs font-semibold text-brandIcon"></span>
+    </div>
+
+    <!-- Worker Cards -->
+    <div class="flex flex-col gap-4" id="workers-list">
+        {%for w in workers %}
+        <div class="worker-card"
+            data-search="{{ w.user.first_name|default:w.user.username }} {{ w.user.last_name }} {{ w.job_title }} {{ w.service_skills }} {{ w.primary_category }}">
+            <!-- Header: Avatar + basic info -->
+            <div class="worker-header">
+                <div class="worker-avatar">{%if w.profile_picture %}<img src="{{ w.profile_picture.url }}"
+                        alt="{{ w.user.username }}">{%else %}{{ w.user.username|make_list|first|upper }}{%endif %}
+                </div>
+                <div class="worker-info">
+                    <p class="worker-name">{{ w.user.first_name|default:w.user.username }} {{ w.user.last_name }}{%if w.is_verified %} <span class="verified-badge">✓ Verified</span>{%endif %}</p>
+                    {%if w.job_title %}<p class="worker-title">{{ w.job_title }}</p>{%endif %}
+                    {%if w.primary_category %}<span class="worker-category">{{ w.primary_category }}</span>{%endif %}
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="worker-stats">
+                <!-- Rating -->
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    {%if w.rating %}<span class="stat-value">{{ w.rating|floatformat:1 }}</span><span>/5</span>{%else %}<span class="no-exp">New</span>{%endif %}
+                </div>
+
+                <!-- Experience -->
+                <div class="stat-item">
+                    <span class="stat-icon">📅</span>
+                    {%if w.years_experience %}<span class="stat-value">{{ w.years_experience }} yrs</span>{%else %}<span class="no-exp">Not specified</span>{%endif %}
+                </div>
+
+                <!-- Jobs Completed -->
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-value">{{ w.user.jobs_assigned.count }}</span> jobs done
+                </div>
+            </div>
+
+            <!-- Skills -->
+            {%if w.service_skills %}
+            <div class="worker-skills-section">
+                <div class="skills-label">Skills & Expertise</div>
+                <div class="worker-skills">{%for skill in w.service_skills_list %}<span class="worker-skill">{{ skill }}</span>{%endfor %}</div>
+            </div>
+            {%endif %}
+
+            <!-- Footer: Availability + Actions -->
+            <div class="worker-footer">
+                <span class="avail-badge"><span class="avail-dot"></span> Available Now</span>
+                <div class="worker-actions">
+                    {%if request.user.profile.role == 'Job Provider' %}
+                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                        {%if provider_jobs %}
+                        <select id="job-select-{{ w.user.id }}" style="font-size: 11px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; background: white; font-weight: 600; outline: none; max-width: 180px;">
+                            {%for pj in provider_jobs %}
+                            <option value="{{ pj.id }}">{{ pj.title|truncatewords:5 }}</option>
+                            {%endfor %}
+                        </select>
+                        {%endif %}
+                        <button onclick="sendTaskRequest('{{ w.user.id }}', this)" class="btn-profile"
+                            style="background: linear-gradient(135deg, #059669, #10b981);">📝 Ask to do Task</button>
+                    </div>
+                    {%endif %}
+                    <a href="{%url 'inbox' %}?user={{ w.user.id }}" class="btn-msg">💬 Message</a>
+                    <a href="{%url 'user_profile' w.user.id %}" class="btn-profile">View Profile</a>
+                </div>
+            </div>
+        </div>
+        {%empty %}
+
+        <div class="text-center py-16 li-card">
+            <div class="text-5xl mb-4">🔍</div>
+            <p class="text-lg font-bold text-brandText mb-1">No workers found</p>
+            <p class="text-sm text-brandIcon">{%if current_filter %}No workers match "{{ current_filter }}". Try a different skill.{%else %}No available workers right now. Check back later!{%endif %}</p>
+        </div>
+        {%endfor %}
+    </div>
+</div>
+{%endblock %}
+
+{%block extra_scripts %}
+<script>
+    function sendTaskRequest(workerId, btn) {
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Sending...';
+
+        const url = `/services/request/send/${workerId}/`;
+
+        const jobSelect = document.getElementById(`job-select-${workerId}`);
+        const jobId = jobSelect ? jobSelect.value : null;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({job_id: jobId})
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    btn.innerHTML = '✓ Request Sent';
+                    btn.style.background = '#64748b';
+                } else {
+                    alert(data.error || 'Error sending request');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(e => {
+                console.error(e);
+                alert('Network error');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+    }
+
+    function filterWorkers() {
+        const q = document.getElementById('live-search').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.worker-card');
+        const clearBtn = document.getElementById('clear-search');
+        const countEl = document.getElementById('search-count');
+        let vis = 0;
+        cards.forEach(c => {
+            const d = (c.getAttribute('data-search') || '').toLowerCase();
+            const t = c.textContent.toLowerCase();
+            const ok = !q || d.includes(q) || t.includes(q);
+            c.style.display = ok ? '' : 'none';
+            if (ok) vis++;
+        });
+        clearBtn.classList.toggle('hidden', !q);
+        countEl.textContent = q ? vis + ' found' : '';
+    }
+    document.getElementById('live-search').addEventListener('input', filterWorkers);
+</script>
+{%endblock %}
