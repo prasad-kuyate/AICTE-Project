@@ -155,27 +155,34 @@
                     <select id="job_category" name="job_category" onchange="toggleOtherCategory()"
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-medium text-brandText focus:outline-none focus:ring-2 focus:ring-brandBlue/30 focus:border-brandBlue transition">
                         <option value="">Select a category</option>
-                        <option value="Plumbing" {% if form_data.job_category == 'Plumbing' %}selected{% endif %}>🔧
+                        <option value="Plumbing">🔧
                             Plumbing</option>
-                        <option value="Electrical" {% if form_data.job_category == 'Electrical' %}selected{% endif %}>⚡
+                        <option value="Electrical">⚡
                             Electrical</option>
-                        <option value="Carpentry" {% if form_data.job_category == 'Carpentry' %}selected{% endif %}>🪚
+                        <option value="Carpentry">🪚
                             Carpentry</option>
-                        <option value="Mechanic" {% if form_data.job_category == 'Mechanic' %}selected{% endif %}>🔩
+                        <option value="Mechanic">🔩
                             Mechanic</option>
-                        <option value="Housekeeping" {% if form_data.job_category == 'Housekeeping' %}selected{% endif %}>
-                            🧹 Housekeeping</option>
-                        <option value="Guard" {% if form_data.job_category == 'Guard' %}selected{% endif %}>🛡️ Guard /
+                        <option value="Housekeeping">🧹 Housekeeping</option>
+                        <option value="Guard">🛡️ Guard /
                             Security</option>
-                        <option value="Packing" {% if form_data.job_category == 'Packing' %}selected{% endif %}>📦 Packing
+                        <option value="Packing">📦
+                            Packing
                             / Moving</option>
-                        <option value="AC Repair" {% if form_data.job_category == 'AC Repair' %}selected{% endif %}>❄️ AC
+                        <option value="AC Repair">❄️
+                            AC
                             Repair</option>
-                        <option value="Painting" {% if form_data.job_category == 'Painting' %}selected{% endif %}>🎨
+                        <option value="Painting">🎨
                             Painting</option>
-                        <option value="Other" {% if form_data.job_category == 'Other' %}selected{% endif %}>📋 Other
+                        <option value="Other">📋 Other
                         </option>
                     </select>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            let cat = "{{ form_data.job_category|default:''|escapejs }}";
+                            if (cat) document.getElementById('job_category').value = cat;
+                        });
+                    </script>
                 </div>
             </div>
 
@@ -624,6 +631,17 @@
     document.addEventListener('click', function (e) {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.add('hidden');
+        }
+    });
+
+    // ===== DATE/TIME CONSTRAINTS =====
+    document.addEventListener('DOMContentLoaded', function () {
+        const timeInput = document.getElementById('scheduled_time');
+        if (timeInput) {
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(now - tzOffset)).toISOString().slice(0, 16);
+            timeInput.min = localISOTime;
         }
     });
 

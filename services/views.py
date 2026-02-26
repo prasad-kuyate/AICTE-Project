@@ -219,6 +219,21 @@ def post_job_page(request):
         if not description:
             errors.append('Job description is required.')
         
+        # Handle optional scheduled_time
+        from django.utils.dateparse import parse_datetime
+        from django.utils import timezone
+        
+        sched_dt = parse_datetime(scheduled_time) if scheduled_time else None
+        
+        if sched_dt:
+            if timezone.is_naive(sched_dt):
+                sched_dt = timezone.make_aware(sched_dt)
+                
+            now = timezone.now()
+            
+            if sched_dt < now:
+                errors.append('Scheduled time cannot be in the past.')
+                
         if errors:
             from django.contrib import messages
             for err in errors:
@@ -226,10 +241,6 @@ def post_job_page(request):
             return render(request, 'post_job.html', {
                 'form_data': request.POST
             })
-        
-        # Handle optional scheduled_time
-        from django.utils.dateparse import parse_datetime
-        sched_dt = parse_datetime(scheduled_time) if scheduled_time else None
 
         job = ServiceJob.objects.create(
             provider=request.user,

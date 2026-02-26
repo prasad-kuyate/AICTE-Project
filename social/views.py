@@ -275,7 +275,42 @@ def jobs_view(request):
 @login_required
 def notifications_view(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-timestamp')
-    return render(request, 'notifications.html', {'notifications': notifications})
+    
+    # Categorize into job alerts vs other alerts
+    job_notifications = []
+    other_notifications = []
+    
+    # Keywords that indicate it's a job/task related notification
+    job_keywords = ['accepted your task', 'accepted your job', 'declined your', 'assigned you', 'updated job', 'invited you']
+    
+    for n in notifications:
+        verb_lower = n.verb.lower()
+        if 'connection' not in verb_lower and any(kw in verb_lower for kw in job_keywords):
+            if 'completed' in verb_lower:
+                n.short_status = 'Completed'
+            elif 'accepted' in verb_lower:
+                n.short_status = 'Accepted'
+            elif 'declined' in verb_lower:
+                n.short_status = 'Declined'
+            elif 'assigned' in verb_lower:
+                n.short_status = 'Assigned'
+            elif 'invited' in verb_lower:
+                n.short_status = 'Invited'
+            elif 'created' in verb_lower:
+                n.short_status = 'Created'
+            else:
+                n.short_status = 'Updated'
+
+            job_notifications.append(n)
+        else:
+            other_notifications.append(n)
+            
+    context = {
+        'notifications': notifications, # keep for "mark all as read" logic
+        'job_notifications': job_notifications,
+        'other_notifications': other_notifications,
+    }
+    return render(request, 'notifications.html', context)
 
 
 @login_required

@@ -14,31 +14,110 @@
 
     <!-- Main Content -->
     <main class="w-full md:w-[680px] flex-shrink-0 flex flex-col gap-2">
-        <div id="notifications-container" class="li-card p-0">
-            {% for notif in notifications %}
-            <a href="{% url 'notification_redirect' notif.id %}"
-                class="notification-item p-4 border-b border-brandBorder hover:bg-slate-50 cursor-pointer flex gap-4 transition group {% if not notif.is_read %}bg-blue-50/50{% endif %}"
-                data-id="{{ notif.id }}">
-                <div
-                    class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-xl shadow-sm {% if notif.is_read %}bg-slate-100 border border-slate-200{% else %}bg-emerald-100 border border-emerald-200{% endif %}">
-                    🛠️
+        <div id="notifications-container" class="flex flex-col gap-6">
+
+            {% if job_notifications %}
+            <div class="li-card p-0 overflow-hidden">
+                <div class="p-4 border-b border-brandBorder bg-slate-50">
+                    <h3 class="font-bold text-brandText text-base">Job Activity</h3>
                 </div>
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-brandText group-hover:text-brandBlue transition">
-                        <span class="font-extrabold">{{ notif.actor }}</span> {{ notif.verb }}
-                        {% if notif.target %}{{ notif.target }}{% endif %}
-                    </p>
-                    <p class="text-xs font-semibold text-brandIcon mt-1">{{ notif.timestamp|timesince }} ago {% if not notif.is_read %}<span
-                            class="ml-2 bg-brandBlue text-white px-1.5 py-0.5 rounded text-[9px] font-bold">NEW</span>{% endif %}</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-slate-50/50 text-brandIcon text-xs uppercase tracking-wider border-b border-brandBorder">
+                                <th class="p-4 font-bold">Job Context</th>
+                                <th class="p-4 font-bold">Name</th>
+                                <th class="p-4 font-bold">Status</th>
+                                <th class="p-4 font-bold">Date & Time</th>
+                                <th class="p-4 font-bold text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            {% for notif in job_notifications %}
+                            <tr
+                                class="border-b border-brandBorder hover:bg-slate-50 transition group {% if not notif.is_read %}bg-blue-50/30{% endif %}">
+                                <td class="p-4 font-bold text-brandText align-middle">
+                                    {% if notif.target %}{{ notif.target|truncatechars:35 }}{% else %}—{% endif %}
+                                    {% if not notif.is_read %}
+                                    <span
+                                        class="ml-2 bg-brandBlue text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                        NEW
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-4 font-medium text-brandText align-middle">
+                                    <div class="flex items-center gap-2">
+                                        <div
+                                            class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-brandBlue font-bold text-xs uppercase overflow-hidden shrink-0">
+                                            {{ notif.actor|make_list|first }}
+                                        </div>
+                                        <span>{{ notif.actor }}</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-brandIcon font-medium align-middle">
+                                    <span class="px-2 py-1 bg-slate-100 rounded-md text-xs font-bold">
+                                        {{ notif.short_status|default:notif.verb }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-slate-500 text-xs font-medium align-middle whitespace-nowrap">
+                                    {{ notif.timestamp|date:"M d, Y" }} <br>
+                                    <span class="text-[10px] text-slate-400">{{ notif.timestamp|time:"h:i A" }}</span>
+                                </td>
+                                <td class="p-4 text-center align-middle">
+                                    <a href="{% url 'notification_redirect' notif.id %}"
+                                        class="inline-block bg-white border border-slate-200 text-brandBlue font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-slate-50 hover:border-brandBlue transition shadow-sm whitespace-nowrap">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-            </a>
-            {% empty %}
-            <div class="p-12 text-center">
+            </div>
+            {% endif %}
+
+            {% if other_notifications %}
+            <div class="li-card p-0">
+                <div class="p-4 border-b border-brandBorder bg-slate-50">
+                    <h3 class="font-bold text-brandText text-base">Other Alerts</h3>
+                </div>
+                {% for notif in other_notifications %}
+                <a href="{% url 'notification_redirect' notif.id %}"
+                    class="notification-item p-4 border-b border-brandBorder hover:bg-slate-50 cursor-pointer flex gap-4 transition group {% if not notif.is_read %}bg-blue-50/50{% endif %}"
+                    data-id="{{ notif.id }}">
+                    <div
+                        class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-xl shadow-sm {% if notif.is_read %}bg-slate-100 border border-slate-200{% else %}bg-emerald-100 border border-emerald-200{% endif %}">
+                        🔔
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-brandText group-hover:text-brandBlue transition">
+                            <span class="font-extrabold">{{ notif.actor }}</span> {{ notif.verb }}
+                            {% if notif.target %}{{ notif.target }}{% endif %}
+                        </p>
+                        <p class="text-xs font-semibold text-brandIcon mt-1">
+                            {{ notif.timestamp|timesince }} ago
+                            {% if not notif.is_read %}
+                            <span class="ml-2 bg-brandBlue text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                NEW
+                            </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if not job_notifications and not other_notifications %}
+            <div class="li-card p-12 text-center">
                 <div class="text-4xl mb-3">🔔</div>
                 <p class="text-base font-bold text-brandText mb-1">You're all caught up!</p>
                 <p class="text-sm text-brandIcon font-medium">No new alerts at the moment.</p>
             </div>
-            {% endfor %}
+            {% endif %}
+
         </div>
     </main>
 </div>
